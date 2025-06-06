@@ -1,5 +1,5 @@
 // Proyecto SSL - Generador de expresiones regulares
-
+// prueba 
 #include <stdio.h>
 #include <stdlib.h> 
 

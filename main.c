@@ -1,41 +1,69 @@
-// Proyecto SSL - Generador de expresiones regulares
-// prueba 
+// Librerias
 #include <stdio.h>
-#include <stdlib.h> 
+#include <string.h>
 
+// Funcion para separar en terminos las expresiones
+void Separar_Terminos(char expresion[50], char listas[2][100]) {
+    int parentesis = 0;
+    int no_parentesis = 1;
+    int columna = 0;
 
+    // Recorrer la expresion dada
+    for (int i = 0; expresion[i] != '\0'; i++) {
 
-// funciones
+        //Detecta cuando uno de los caracteres es un (
+        if (expresion[i] == '('  && expresion[i] != '\0') { 
+            
+            // Empieza a guardar todo hasta que el parentesis se cierre en la linea 0, y guarda vacios en la linea 1
+            while (expresion[i] != ')') {
 
+                listas[parentesis][columna] = expresion[i];
+                listas[no_parentesis][columna] = ' ';
+                columna++;
+                i++;
+            }
+            
+            // Añade un parentesis al final de la expresion entre parentesis
+            listas[parentesis][columna] = ')';
+            listas[no_parentesis][columna] = ' ';
+            columna++;
 
+            // Si despues del parentesis hay un algun *+? los guarda en la lista de parentesis
+            if (strchr("*+?", expresion[i + 1])){
+                i++;
+                listas[parentesis][columna] = expresion[i];
+                listas[no_parentesis][columna] = ' ';
+                columna++;
+            }
+        
+        }
+        //Cuando no hay parentesis guarda en la linea sin parentesis y vacios en la linea parentesis
+        else {
+            listas[no_parentesis][columna] = expresion[i];
+            listas[parentesis][columna] = ' ';
+            columna++;
+        }
+    }
 
-
-
-// main
-int main() {
-
-    //Variables
-
-    //loop principal
-        //separacion en terminos
-        //bucles para * y +
-        //bool para ?
-        //bool para |
-        //add a lista
-        //if lista > numero, break while
-    
-    //mostrar el resultado
-    //opcion de empezar un nuevo bucle?
-    //end
-
-
-    return 0;
+    // Añade un cierre cuando termina de separar y guardar la expresion
+    listas[parentesis][columna] = '\0';
+    listas[no_parentesis][columna] = '\0';
 }
 
 
-// Lo que tengo pensado es adentro de un while que siga recorriendo y que haga lo siguiente:
-// * puede ser un contador por cada loop del while. porque va desde 0 hasta inf. tambien se podria hacer un for adentro. para agarrar
-// todas las posibles combinaciones. como en: a*b* que no solamente nos tire un vacio y despues ab. sino que nos tire. vacio/a/b/ab etc
-// obviamente hay que separar en terminos todo. si la expresion es a*b*c. entonces tendriamos que tomarlo como un (a*) + (b*) + (c)
-// ya con la separacion de terminos es solamente empezar a poner ifs adentro del loop principal y que los resultados cuando termine el loop
-// los deje en una lista. y cuando la lista tenga una longitud de alrededor de 5/10 expresiones. se corte el loop y muestre el resultado
+int main() {
+    
+    // Test de la funcion
+    char expresiones[50];
+    char lista[2][100];
+
+    printf("Ingrese su expresion regular: ");
+    scanf("%s", expresiones);
+
+    Separar_Terminos(expresiones, lista);
+
+    printf("Con parentesis: %s\n", lista[0]);
+    printf("Sin parentesis: %s\n", lista[1]);
+
+    return 0;
+}

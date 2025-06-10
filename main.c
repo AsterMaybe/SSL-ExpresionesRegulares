@@ -1,123 +1,105 @@
-// Librerias
 #include <stdio.h>
 #include <string.h>
 
-// Funcion para separar en terminos las expresiones
-void Separar_Terminos(char expresion[50], char listas[2][100]) {
-    int parentesis = 0;
-    int no_parentesis = 1;
-    int columna = 0;
+#define Estados 20
+#define Simbolos 10
+#define Cadena 100
 
-    // Recorrer la expresion dada
-    for (int i = 0; expresion[i] != '\0'; i++) {
+char alfabeto[Simbolos];
+int numSimbolos;
 
-        //Detecta cuando uno de los caracteres es un (
-        if (expresion[i] == '('  && expresion[i] != '\0') { 
-            
-            // Empieza a guardar todo hasta que el parentesis se cierre en la linea 0, y guarda vacios en la linea 1
-            while (expresion[i] != ')') {
+int tablaTransicion[Estados][Simbolos];
+int estadoInicial;
+int estadosFinales[Estados];
+int numEstados, numEstadosFinales;
 
-                listas[parentesis][columna] = expresion[i];
-                listas[no_parentesis][columna] = ' ';
-                columna++;
-                i++;
-            }
-            
-            // Añade un parentesis al final de la expresion entre parentesis
-            listas[parentesis][columna] = ')';
-            listas[no_parentesis][columna] = ' ';
-            columna++;
-
-            // Si despues del parentesis hay un algun *+? los guarda en la lista de parentesis
-            if (strchr("*+?", expresion[i + 1])){
-                i++;
-                listas[parentesis][columna] = expresion[i];
-                listas[no_parentesis][columna] = ' ';
-                columna++;
-            }
-        
-        }
-        //Cuando no hay parentesis guarda en la linea sin parentesis y vacios en la linea parentesis
-        else {
-            listas[no_parentesis][columna] = expresion[i];
-            listas[parentesis][columna] = ' ';
-            columna++;
-        }
+// Función para obtener el índice de un símbolo en el alfabeto
+int indiceSimbolo(char simbolo) {
+    for (int i = 0; i < numSimbolos; i++) {
+        if (alfabeto[i] == simbolo) return i;
     }
-
-    // Añade un cierre cuando termina de separar y guardar la expresion
-    listas[parentesis][columna] = '\0';
-    listas[no_parentesis][columna] = '\0';
+    return -1;
 }
 
-void Interpretar_Expresion(char lista[2][100]) {
-
-    // Lista final y lista temporal con sus respectivas posiciones
-    char lista_final[3][100];
-    int posicion_final = 0;
-    char expresion_temp[100];
-    int posicion_temp = 0;
-
-    // Variables para la lista
-    int linea = 0;
-    int columna = 0;
-    int repetir = 1;
-
-    while (repetir) {
-
-        // Cuando detecte el terminador que se pare el bucle
-        if (lista[linea][columna] == '\0'){
-
-            break;
-        }
-
-        // Cuando detecta que hay un espacio en la lista cambia la polaridad de la linea, osea de 1 pasa a 0 y de 0 a 1
-        if (lista[linea][columna] == ' '){
-
-            linea = !linea;
-        }
-        
-        // Loop para correr la lista con parentesis o sin parentesis hasta que encuentre un espacio
-        for (int i = 0; lista[linea][columna] != '\0' || lista[linea][columna] != ' '; i++) {
-            
-            // Adentro checkea cada operador, y si no es ninguno, solamente guarda la letra en una expresion temporal
-
-            // Estrella, que el resultado sea solamente los primeros 3 resultados de una expresion, o se hace muy largo
-            if (lista[linea][columna] = '*'){
-                
-                //Manda a la lista, una en cada linea, la operacion terminada
-                for (int i = 0; i > 3; i++) {
-
-                    lista_final[i][posicion_final] = expresion_temp;
-                }
-                // Sumarle 1 a la posicion y despues dejar la expresion temporal en blanco
-                posicion_final++;
-                memset(expresion_temp, 0, sizeof(expresion_temp));
-            }
-            
-            // Guardado de el char en la expresion temporal
-            expresion_temp[posicion_temp++] = lista[linea][columna];
-
-        }   
+int esEstadoFinal(int estado) {
+    for (int i = 0; i < numEstadosFinales; i++) {
+        if (estado == estadosFinales[i]) return 1;
     }
-
+    return 0;
 }
 
+void mostrarDatosGrupo() {
+    printf("Autores: Perez - González\n");
+    printf("Tema: Autómata Finito Determinista (AFD)\n\n");
+}
+
+void definirAFD() {
+    printf("Ingrese la cantidad de símbolos del alfabeto: ");
+    scanf("%d", &numSimbolos);
+
+    printf("Ingrese los símbolos del alfabeto separados por espacio:\n");
+    for (int i = 0; i < numSimbolos; i++) {
+        scanf(" %c", &alfabeto[i]);
+    }
+
+    printf("Ingrese la cantidad de estados: ");
+    scanf("%d", &numEstados);
+
+    printf("Ingrese el estado inicial (número entre 0 y %d): ", numEstados - 1);
+    scanf("%d", &estadoInicial);
+
+    printf("Ingrese la cantidad de estados finales: ");
+    scanf("%d", &numEstadosFinales);
+
+    printf("Ingrese los estados finales (números entre 0 y %d):\n", numEstados - 1);
+    for (int i = 0; i < numEstadosFinales; i++) {
+        scanf("%d", &estadosFinales[i]);
+    }
+
+    printf("\nDefina la tabla de transición:\n");
+    for (int i = 0; i < numEstados; i++) {
+        for (int j = 0; j < numSimbolos; j++) {
+            printf("Desde estado %d con '%c' va a estado: ", i, alfabeto[j]);
+            scanf("%d", &tablaTransicion[i][j]);
+        }
+    }
+}
+
+void procesarCadena(char cadena[]) {
+    int estadoActual = estadoInicial;
+    int simboloIndex;
+
+    for (int i = 0; i < strlen(cadena); i++) {
+        simboloIndex = indiceSimbolo(cadena[i]);
+        if (simboloIndex == -1) {
+            printf("Cadena rechazada: símbolo '%c' no pertenece al alfabeto.\n", cadena[i]);
+            return;
+        }
+        estadoActual = tablaTransicion[estadoActual][simboloIndex];
+    }
+
+    if (esEstadoFinal(estadoActual)) {
+        printf("Cadena aceptada.\n");
+    } else {
+        printf("Cadena rechazada.\n");
+    }
+}
 
 int main() {
+    char cadena[Cadena];
 
-    // Test de la funcion
-    char expresiones[50];
-    char lista_separada[2][100];
-    char lista_terminada[1][100];
+    mostrarDatosGrupo();
+    printf("Este programa representa un Autómata Finito Determinista (AFD).\n\n");
 
-    printf("Ingrese su expresion regular: ");
-    scanf("%s", expresiones);
+    definirAFD();
 
-    Separar_Terminos(expresiones, lista_separada);
+    while (1) {
+        printf("\nIngrese una cadena para verificar (o escriba 'salir' para terminar): ");
+        scanf("%s", cadena);
+        if (strcmp(cadena, "salir") == 0) break;
+        procesarCadena(cadena);
+    }
 
-    printf("Con parentesis: %s\n", lista_separada[0]);
-    printf("Sin parentesis: %s\n", lista_separada[1]);
-
+    printf("Programa finalizado.\n");
     return 0;
 }
